@@ -37,12 +37,17 @@ const std::string Database::get_site(const std::string _id) {
 
     // Get connection from pool. If empty add connections.
     {
-        auto lock = lock_db_mutex();
-        if (dbpool.empty()) {
-            increase_pool(5);
-        }
-        D = dbpool.top();
-        dbpool.pop();
+        auto lacking_db_conn = true;
+        do {
+            auto lock = lock_db_mutex();
+            if (!dbpool.empty()) {
+                D = dbpool.top();
+                dbpool.pop();
+                lacking_db_conn = false;
+            } else {
+                lock.release();
+            }
+        } while (lacking_db_conn);
     }
 
     std::string query = "select * from locations, readings where locations._id = $1 order by date limit 1";

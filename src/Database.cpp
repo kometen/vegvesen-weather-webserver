@@ -46,6 +46,7 @@ const std::string Database::get_site(const std::string _id) {
                 lacking_db_conn = false;
             } else {
                 lock.release();
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
             }
         } while (lacking_db_conn);
     }

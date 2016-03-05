@@ -25,7 +25,7 @@
 typedef SimpleWeb::Server<SimpleWeb::HTTP> HttpServer;
 
 int main() {
-    HttpServer server(8080, 8);
+    HttpServer server{8080, 8};
     gnome::Database database {50};
 
     // GET site id. Respond with weather statistics.

@@ -45,14 +45,14 @@ const std::string Database::get_site(const std::string _id) {
         dbpool.pop();
     }
 
-    std::string query = "select * from locations, readings where locations._id = $1 order by date limit 1";
+    std::string query = "select description, coordinate, doc from readings_json inner join locations on readings_json.site_id = locations.site_id where readings_json.site_id = $1 order by measurementtimedefault desc limit 1";
     (*D).prepare(prepared, query);
 
     pqxx::nontransaction N(*D);
     pqxx::result R(N.prepared(prepared)(_id).exec());
 
     for (pqxx::result::iterator c = R.begin(); c != R.end(); ++c) {
-        result = c[2].as<std::string>() + "|" + c[3].as<std::string>() + "|" + c[6].as<std::string>();
+        result = c[0].as<std::string>() + "|" + c[1].as<std::string>() + "|" + c[2].as<std::string>();
     }
 
     // Put the connection back to the pool.

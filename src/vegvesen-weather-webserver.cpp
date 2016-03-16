@@ -32,7 +32,7 @@ int main() {
     server.resource["^/site/([0-9]{1,9})$"]["GET"] = [&database](HttpServer::Response& response, std::shared_ptr<HttpServer::Request> request) {
         std::string id = request->path_match[1];
         std::string result = database.get_site(id);
-        response << "HTTP/1.1 200 OK\r\nContent-Length: " << result.size() << "\r\n\r\n" << result;
+        response << "HTTP/1.1 200 OK\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length: " << result.size() << "\r\n\r\n" << result;
     };
 
     // Info about client connecting.

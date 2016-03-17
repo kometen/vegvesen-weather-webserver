@@ -38,11 +38,13 @@ int main() {
     // Info about client connecting.
     server.resource["^/info$"]["GET"] = [](HttpServer::Response& response, std::shared_ptr<HttpServer::Request> request) {
         std::stringstream cs;
+        cs << "<!doctype html><html lang='en'><head><meta charset='utf-8'><title>Weather statistics</title></head><body>";
         cs << "<h1>Request from " << request->remote_endpoint_address << " (" << request->remote_endpoint_port << ")</h1>";
         cs << request->method << " " << request->path << " HTTP/" << request->http_version << "<br/>";
         for (auto& h : request->header) {
             cs << h.first << ": " << h.second << "<br/>";
         }
+        cs << "</body></html>";
 
         // Find length of cs (content stream).
         cs.seekp(0, std::ios::end);

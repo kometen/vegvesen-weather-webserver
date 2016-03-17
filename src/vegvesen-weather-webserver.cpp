@@ -30,9 +30,15 @@ int main() {
 
     // GET site id. Respond with weather statistics.
     server.resource["^/site/([0-9]{1,9})$"]["GET"] = [&database](HttpServer::Response& response, std::shared_ptr<HttpServer::Request> request) {
+        const std::string nf = "{\"Status 404\": \"Not Found\"}";
+        const int nfs = nf.size();
         std::string id = request->path_match[1];
         std::string result = database.get_site(id);
-        response << "HTTP/1.1 200 OK\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length: " << result.size() << "\r\n\r\n" << result;
+        if (result.size()) {
+            response << "HTTP/1.1 200 OK\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length: " << result.size() << "\r\n\r\n" << result;
+        } else {
+            response << "HTTP/1.1 404 Not Found\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length: " << nfs << "\r\n\r\n" << nf;
+        }
     };
 
     // Info about client connecting.

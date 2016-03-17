@@ -81,7 +81,7 @@ const std::string Database::graticule(const std::string latitude, const std::str
         dbpool.pop();
     }
 
-    std::string query = "select miles, description, coordinate[0] as longitude, coordinate[1] as latitude, doc from (select l.miles, l.site_id, l.description, l.coordinate, doc from (select site_id, description, round((coordinate <@> point($1,$2))::numeric, 1) as miles, coordinate from locations order by miles limit 5) as l, readings_json where l.site_id = readings_json.site_id limit 5) as sub order by sub.miles";
+    std::string query = "select miles, description, coordinate[0] as longitude, coordinate[1] as latitude, doc from (select l.miles, l.site_id, l.description, l.coordinate, doc from (select site_id, description, round((coordinate <@> point($1,$2))::numeric, 6) as miles, coordinate from locations order by miles limit 5) as l, readings_json where l.site_id = readings_json.site_id limit 5) as sub order by sub.miles";
     (*D).prepare(prepared, query);
 
     pqxx::nontransaction N(*D);

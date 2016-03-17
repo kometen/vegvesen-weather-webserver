@@ -91,7 +91,7 @@ const std::string Database::graticule(const std::string latitude, const std::str
         } else {
             result = "[";
         }
-        result += "{\"miles\": \"" + c[0].as<std::string>() + "\", \"measurementSiteName\": \"" + c[1].as<std::string>() + "\", \"latitude\": \"" + c[3].as<std::string>() + "\", \"longitude\": \"" + c[2].as<std::string>() + "\", " + c[3].as<std::string>().erase(0,1);
+        result += "{\"miles\": \"" + c[0].as<std::string>() + "\", \"measurementSiteName\": \"" + c[1].as<std::string>() + "\", \"latitude\": \"" + c[3].as<std::string>() + "\", \"longitude\": \"" + c[2].as<std::string>() + "\", " + c[4].as<std::string>().erase(0,1);
     }
     result += "]";
 

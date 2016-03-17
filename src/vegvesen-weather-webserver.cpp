@@ -62,7 +62,7 @@ int main() {
     server.default_resource["GET"] = [](HttpServer::Response& response, std::shared_ptr<HttpServer::Request> request) {
         const std::string msg = "<!doctype html><html lang='en'><head><meta charset='utf-8'><title>Weather statistics</title></head><body>Available paths are <a href='/info'>/info</a> and <a href='/site/123'>/site/id</a> where id is numeric</body></html>";
         const int msgs = msg.size();
-        response << "HTTP/1.1 200 OK\r\nContent-Length: " << msgs << "\r\n\r\n" << msg;
+        response << "HTTP/1.1 404 Not Found\r\nContent-Length: " << msgs << "\r\n\r\n" << msg;
     };
 
     std::thread server_thread([&server]() {

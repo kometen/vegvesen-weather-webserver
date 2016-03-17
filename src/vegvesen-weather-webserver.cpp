@@ -42,7 +42,7 @@ int main() {
     };
 
     // Search for location nearby.
-    server.resource["^/graticule/([0-9]{1,3}.[0-9]{1,9})/([0-9]{1,3}.[0-9]{1,9})$"]["GET"] = [&database](HttpServer::Response& response, std::shared_ptr<HttpServer::Request> request) {
+    server.resource["^/graticule/([0-9]{1,3}.[0-9]{0,9})/([0-9]{1,3}.[0-9]{0,9})$"]["GET"] = [&database](HttpServer::Response& response, std::shared_ptr<HttpServer::Request> request) {
         const std::string nf = "{\"Status 404\": \"Not Found\"}";
         const int nfs = nf.size();
         std::string latitude = request->path_match[1];

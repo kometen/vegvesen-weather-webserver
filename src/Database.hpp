@@ -26,7 +26,8 @@ private:
 
 public:
     Database(const unsigned int);
-    const std::string get_site(const std::string);
+    const std::string site(const std::string);
+    const std::string graticule(const std::string, const std::string);
     virtual ~Database();
 };
 

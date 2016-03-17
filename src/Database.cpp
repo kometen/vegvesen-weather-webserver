@@ -30,7 +30,7 @@ void Database::increase_pool(const unsigned int poolsize) {
     }
 }
 
-const std::string Database::get_site(const std::string _id) {
+const std::string Database::site(const std::string site_id) {
     const std::string prepared = "a";
     std::string result {};
     pqxx::connection *D;
@@ -49,11 +49,51 @@ const std::string Database::get_site(const std::string _id) {
     (*D).prepare(prepared, query);
 
     pqxx::nontransaction N(*D);
-    pqxx::result R(N.prepared(prepared)(_id).exec());
+    pqxx::result R(N.prepared(prepared)(site_id).exec());
 
     for (pqxx::result::iterator c = R.begin(); c != R.end(); ++c) {
         result = "{\"measurementSiteName\": \"" + c[0].as<std::string>() + "\", \"latitude\": \"" + c[2].as<std::string>() + "\", \"longitude\": \"" + c[1].as<std::string>() + "\", " + c[3].as<std::string>().erase(0,1);
     }
+
+    // Put the connection back to the pool.
+    {
+        auto lock = lock_db_mutex();
+        dbpool.push(D);
+    }
+
+    return result;
+}
+
+const std::string Database::graticule(const std::string latitude, const std::string longitude) {
+    const std::string prepared = "b";
+    std::string result {};
+    pqxx::connection *D;
+
+    // Get connection from pool. If empty add connections.
+    {
+        auto lock = lock_db_mutex();
+        if (dbpool.empty()) {
+            increase_pool(5);
+        }
+        D = dbpool.top();
+        dbpool.pop();
+    }
+
+    std::string query = "select miles, description, coordinate[0] as longitude, coordinate[1] as latitude, doc from (select l.miles, l.site_id, l.description, l.coordinate, doc from (select site_id, description, round((coordinate <@> point($1,$2))::numeric, 1) as miles, coordinate from locations order by miles limit 5) as l, readings_json where l.site_id = readings_json.site_id limit 5) as sub order by sub.miles";
+    (*D).prepare(prepared, query);
+
+    pqxx::nontransaction N(*D);
+    pqxx::result R(N.prepared(prepared)(longitude)(latitude).exec());
+
+    for (pqxx::result::iterator c = R.begin(); c != R.end(); ++c) {
+        if (result.size()) {
+            result += ", ";
+        } else {
+            result = "[";
+        }
+        result += "{\"miles\": \"" + c[0].as<std::string>() + "\", \"measurementSiteName\": \"" + c[1].as<std::string>() + "\", \"latitude\": \"" + c[3].as<std::string>() + "\", \"longitude\": \"" + c[2].as<std::string>() + "\", " + c[3].as<std::string>().erase(0,1);
+    }
+    result += "]";
 
     // Put the connection back to the pool.
     {

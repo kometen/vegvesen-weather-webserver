@@ -65,6 +65,8 @@ const std::string Database::site(const std::string site_id) {
 }
 
 const std::string Database::graticule(const std::string latitude, const std::string longitude) {
+    const double mile = 1.609344;
+    std::string km {};
     const std::string prepared = "b";
     std::string result {};
     pqxx::connection *D;
@@ -91,7 +93,8 @@ const std::string Database::graticule(const std::string latitude, const std::str
         } else {
             result = "[";
         }
-        result += "{\"miles\": \"" + c[0].as<std::string>() + "\", \"measurementSiteName\": \"" + c[1].as<std::string>() + "\", \"latitude\": \"" + c[3].as<std::string>() + "\", \"longitude\": \"" + c[2].as<std::string>() + "\", " + c[4].as<std::string>().erase(0,1);
+        km = std::to_string(c[0].as<double>() * mile);
+        result += "{\"statute miles\": \"" + c[0].as<std::string>() + "\", \"kilometers\": \"" + km + "\", \"measurementSiteName\": \"" + c[1].as<std::string>() + "\", \"latitude\": \"" + c[3].as<std::string>() + "\", \"longitude\": \"" + c[2].as<std::string>() + "\", " + c[4].as<std::string>().erase(0,1);
     }
     result += "]";
 

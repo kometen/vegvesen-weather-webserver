@@ -6,6 +6,15 @@
 // Description : Hello World in C++, Ansi-style
 //============================================================================
 
+// http://tapoueh.org/blog/2013/08/05-earthdistance, install extensions as superuser
+// OSX:
+// PGUSER=postgres psql weather
+// FreeBSD:
+// PGUSER=pgsql psql weather
+//
+// create extension cube;
+// create extension earthdistance;
+
 #include <iostream>
 
 #include <eidheim/server_http.hpp>

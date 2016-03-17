@@ -60,9 +60,9 @@ int main() {
 
     // Default response.
     server.default_resource["GET"] = [](HttpServer::Response& response, std::shared_ptr<HttpServer::Request> request) {
-        std::string msg = "<!doctype html><html lang='en'><head><meta charset='utf-8'><title>Weather statistics</title></head>";
-        msg += "<body>Available paths are <a href='/info'>/info</a> and <a href='/site/123'>/site/id</a> where id is numeric</body></html>";
-        response << "HTTP/1.1 200 OK\r\nContent-Length: " << msg.size() << "\r\n\r\n" << msg;
+        const std::string msg = "<!doctype html><html lang='en'><head><meta charset='utf-8'><title>Weather statistics</title></head><body>Available paths are <a href='/info'>/info</a> and <a href='/site/123'>/site/id</a> where id is numeric</body></html>";
+        const int msgs = msg.size();
+        response << "HTTP/1.1 200 OK\r\nContent-Length: " << msgs << "\r\n\r\n" << msg;
     };
 
     std::thread server_thread([&server]() {
@@ -72,6 +72,5 @@ int main() {
     std::this_thread::sleep_for(std::chrono::seconds(1));
     server_thread.join();
 
-    std::cout << "Blåbærsyltetøj" << std::endl;
 	return 0;
 }

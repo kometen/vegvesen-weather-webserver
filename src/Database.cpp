@@ -31,6 +31,7 @@ void Database::increase_pool(const unsigned int poolsize) {
 }
 
 const std::string Database::site(const std::string site_id) {
+    std::cout << "get site id: " << site_id << std::endl;
     const std::string prepared = "a";
     std::string result {};
     pqxx::connection *D;
@@ -45,7 +46,7 @@ const std::string Database::site(const std::string site_id) {
         dbpool.pop();
     }
 
-    std::string query = "select description, coordinate[0] as longitude, coordinate[1] as latitude, doc from readings_json inner join locations on readings_json.site_id = locations.site_id where readings_json.site_id = $1 order by measurementtimedefault desc limit 1";
+    std::string query = "select measurementsitename, coordinate[0] as longitude, coordinate[1] as latitude, doc from readings_json inner join measurementsitename on readings_json.site_id = measurementsitename.site_id where readings_json.site_id = $1 order by measurementtimedefault desc limit 1";
     (*D).prepare(prepared, query);
 
     pqxx::nontransaction N(*D);
@@ -64,12 +65,14 @@ const std::string Database::site(const std::string site_id) {
     return result;
 }
 
-const std::string Database::graticule(const std::string latitude, const std::string longitude) {
-    const double mile = 1.609344;
+const std::string Database::graticule(const std::string latitude, const std::string longitude, const int sites) {
+    const double miles_to_km = 1.609344;
     std::string km {};
-    const std::string prepared = "b";
+    const std::string prepared_b = "prepared_b";
+    const std::string prepared_c = "prepared_c";
     std::string result {};
-    pqxx::connection *D;
+    pqxx::connection *D1;
+    pqxx::connection *D2;
 
     // Get connection from pool. If empty add connections.
     {
@@ -77,31 +80,44 @@ const std::string Database::graticule(const std::string latitude, const std::str
         if (dbpool.empty()) {
             increase_pool(5);
         }
-        D = dbpool.top();
+        D1 = dbpool.top();
+        dbpool.pop();
+        D2 = dbpool.top();
         dbpool.pop();
     }
 
-    std::string query = "select miles, description, coordinate[0] as longitude, coordinate[1] as latitude, doc from (select l.miles, l.site_id, l.description, l.coordinate, doc from (select site_id, description, round((coordinate <@> point($1,$2))::numeric, 6) as miles, coordinate from locations order by miles limit 5) as l, readings_json where l.site_id = readings_json.site_id limit 5) as sub order by sub.miles";
-    (*D).prepare(prepared, query);
+    // Set nearest sites.
+    std::string query = "select site_id, round((coordinate <@> point($1,$2))::numeric, 6) as miles from readings_json group by site_id, miles order by miles limit $3";
+    (*D1).prepare(prepared_b, query);
 
-    pqxx::nontransaction N(*D);
-    pqxx::result R(N.prepared(prepared)(longitude)(latitude).exec());
+    pqxx::nontransaction N1(*D1);
+    pqxx::result R1(N1.prepared(prepared_b)(longitude)(latitude)(sites).exec());
 
-    for (pqxx::result::iterator c = R.begin(); c != R.end(); ++c) {
-        if (result.size()) {
-            result += ", ";
-        } else {
-            result = "[";
+    for (pqxx::result::iterator c1 = R1.begin(); c1 != R1.end(); ++c1) {
+        // Get detailed information for each site_id, pack it into json-format.
+        query = "select doc from readings_json where site_id = $1 order by id desc limit 1";
+        (*D2).prepare(prepared_c, query);
+
+        pqxx::nontransaction N2(*D2);
+        pqxx::result R2(N2.prepared(prepared_c)(c1[0].as<std::string>()).exec());
+
+        for (pqxx::result::iterator c2 = R2.begin(); c2 != R2.end(); ++c2) {
+            if (result.size()) {
+                result += ", ";
+            } else {
+                result = "[";
+            }
+            km = std::to_string(c1[1].as<double>() * miles_to_km);
+            result += "{\"statute miles\": \"" + c1[1].as<std::string>() + "\", \"kilometers\": \"" + km + "\", " + c2[0].as<std::string>().erase(0,1);
         }
-        km = std::to_string(c[0].as<double>() * mile);
-        result += "{\"statute miles\": \"" + c[0].as<std::string>() + "\", \"kilometers\": \"" + km + "\", \"measurementSiteName\": \"" + c[1].as<std::string>() + "\", \"latitude\": \"" + c[3].as<std::string>() + "\", \"longitude\": \"" + c[2].as<std::string>() + "\", " + c[4].as<std::string>().erase(0,1);
     }
     result += "]";
 
     // Put the connection back to the pool.
     {
         auto lock = lock_db_mutex();
-        dbpool.push(D);
+        dbpool.push(D1);
+        dbpool.push(D2);
     }
 
     return result;

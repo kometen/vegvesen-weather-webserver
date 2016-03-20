@@ -56,7 +56,7 @@ int main() {
         const int nfs = nf.size();
         std::string latitude = request->path_match[1];
         std::string longitude = request->path_match[2];
-        std::string result = database.graticule(latitude, longitude);
+        std::string result = database.graticule(latitude, longitude, 5);
         if (result.size()) {
             response << "HTTP/1.1 200 OK\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length: " << result.size() << "\r\n\r\n" << result;
         } else {

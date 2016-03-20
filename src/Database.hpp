@@ -12,6 +12,7 @@
 #include <mutex>
 #include <stack>
 #include <thread>
+#include <unordered_map>
 #include <pqxx/pqxx>
 
 namespace gnome {
@@ -27,7 +28,7 @@ private:
 public:
     Database(const unsigned int);
     const std::string site(const std::string);
-    const std::string graticule(const std::string, const std::string);
+    const std::string graticule(const std::string, const std::string, const int);
     virtual ~Database();
 };
 

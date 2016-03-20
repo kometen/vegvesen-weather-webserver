@@ -46,14 +46,14 @@ const std::string Database::site(const std::string site_id) {
         dbpool.pop();
     }
 
-    std::string query = "select measurementsitename, coordinate[0] as longitude, coordinate[1] as latitude, doc from readings_json inner join measurementsitename on readings_json.site_id = measurementsitename.site_id where readings_json.site_id = $1 order by measurementtimedefault desc limit 1";
+    std::string query = "select doc from readings_json where site_id = $1 order by id desc limit 1";
     (*D).prepare(prepared, query);
 
     pqxx::nontransaction N(*D);
     pqxx::result R(N.prepared(prepared)(site_id).exec());
 
     for (pqxx::result::iterator c = R.begin(); c != R.end(); ++c) {
-        result = "{\"measurementSiteName\": \"" + c[0].as<std::string>() + "\", \"latitude\": \"" + c[2].as<std::string>() + "\", \"longitude\": \"" + c[1].as<std::string>() + "\", " + c[3].as<std::string>().erase(0,1);
+        result = c[0].as<std::string>();
     }
 
     // Put the connection back to the pool.
@@ -74,7 +74,7 @@ const std::string Database::graticule(const std::string latitude, const std::str
     pqxx::connection *D1;
     pqxx::connection *D2;
 
-    // Get connection from pool. If empty add connections.
+    // Get connections from pool. If empty add connections.
     {
         auto lock = lock_db_mutex();
         if (dbpool.empty()) {
@@ -113,7 +113,7 @@ const std::string Database::graticule(const std::string latitude, const std::str
     }
     result += "]";
 
-    // Put the connection back to the pool.
+    // Put the connections back to the pool.
     {
         auto lock = lock_db_mutex();
         dbpool.push(D1);

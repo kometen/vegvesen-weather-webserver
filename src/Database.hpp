@@ -12,7 +12,6 @@
 #include <mutex>
 #include <stack>
 #include <thread>
-#include <unordered_map>
 #include <pqxx/pqxx>
 
 namespace gnome {

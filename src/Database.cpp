@@ -64,7 +64,7 @@ const std::string Database::site(const std::string site_id) {
     return result;
 }
 
-const std::string Database::graticule(const std::string latitude, const std::string longitude, const int sites) {
+const std::string Database::graticule(const std::string latitude, const std::string longitude, const std::string sites) {
     const double miles_to_km = 1.609344;
     std::string km {};
     const std::string prepared_b = "prepared_b";
@@ -85,7 +85,7 @@ const std::string Database::graticule(const std::string latitude, const std::str
         dbpool.pop();
     }
 
-    // Set nearest sites.
+    // Get nearest sites.
     std::string query = "select site_id, round((coordinate <@> point($1,$2))::numeric, 6) as miles from readings_json group by site_id, miles order by miles limit $3";
     (*D1).prepare(prepared_b, query);
 

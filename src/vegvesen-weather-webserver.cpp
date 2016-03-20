@@ -35,7 +35,7 @@ typedef SimpleWeb::Server<SimpleWeb::HTTP> HttpServer;
 
 int main() {
     HttpServer server{8080, 8};
-    gnome::Database database {50};
+    gnome::Database database {25};
 
     // GET site id. Respond with weather statistics.
     server.resource["^/site/([0-9]{1,9})$"]["GET"] = [&database](HttpServer::Response& response, std::shared_ptr<HttpServer::Request> request) {

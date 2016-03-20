@@ -31,7 +31,6 @@ void Database::increase_pool(const unsigned int poolsize) {
 }
 
 const std::string Database::site(const std::string site_id) {
-    std::cout << "get site id: " << site_id << std::endl;
     const std::string prepared = "a";
     std::string result {};
     pqxx::connection *D;

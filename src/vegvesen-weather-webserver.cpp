@@ -79,6 +79,22 @@ int main() {
         }
     };
 
+    // Search for location within a range.
+    // datachomp.com/archives/radius-queries-in-postgres/
+    server.resource["^/erento/([0-9]{1,3}.[0-9]{1,8})/([0-9]{1,3}.[0-9]{1,8})/([0-9]{1,2})$"]["GET"] = [&database](HttpServer::Response& response, std::shared_ptr<HttpServer::Request> request) {
+        const std::string nf = "{\"Status 404\": \"Not Found\"}";
+        const int nfs = nf.size();
+        std::string latitude = request->path_match[1];
+        std::string longitude = request->path_match[2];
+        std::string radius = request->path_match[3];
+        std::string result = database.erento(latitude, longitude, radius);
+        if (result.size()) {
+            response << "HTTP/1.1 200 OK\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length: " << result.size() << "\r\n\r\n" << result;
+        } else {
+            response << "HTTP/1.1 404 Not Found\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length: " << nfs << "\r\n\r\n" << nf;
+        }
+    };
+
     // Info about client connecting.
     server.resource["^/info$"]["GET"] = [](HttpServer::Response& response, std::shared_ptr<HttpServer::Request> request) {
         std::stringstream cs;

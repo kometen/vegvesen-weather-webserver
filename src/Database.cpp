@@ -122,6 +122,65 @@ const std::string Database::graticule(const std::string latitude, const std::str
     return result;
 }
 
+const std::string Database::erento(const std::string latitude, const std::string longitude, const std::string radius) {
+    const double miles_to_km = 1.609344;
+    double miles = std::stod(radius) / miles_to_km;
+    std::string km {};
+    const std::string prepared_bb = "prepared_bb";
+    const std::string prepared_cc = "prepared_cc";
+    std::string result {};
+    pqxx::connection *D11;
+    pqxx::connection *D12;
+
+    // Get connections from pool. If empty add connections.
+    {
+        auto lock = lock_db_mutex();
+        if (dbpool.empty()) {
+            increase_pool(5);
+        }
+        D11 = dbpool.top();
+        dbpool.pop();
+        D12 = dbpool.top();
+        dbpool.pop();
+    }
+
+    // Get nearest sites.
+    std::string query = "select site_id, round((coordinate <@> point($1,$2))::numeric, 6) as miles from readings_json where (point($3,$4) <@> coordinate) < $5 group by site_id, miles order by miles";
+    (*D11).prepare(prepared_bb, query);
+
+    pqxx::nontransaction N11(*D11);
+    pqxx::result R11(N11.prepared(prepared_bb)(longitude)(latitude)(longitude)(latitude)(miles).exec());
+
+    for (pqxx::result::iterator c11 = R11.begin(); c11 != R11.end(); ++c11) {
+        // Get detailed information for each site_id, pack it into json-format.
+        query = "select doc from readings_json where site_id = $1 order by id desc limit 1";
+        (*D12).prepare(prepared_cc, query);
+
+        pqxx::nontransaction N12(*D12);
+        pqxx::result R12(N12.prepared(prepared_cc)(c11[0].as<std::string>()).exec());
+
+        for (pqxx::result::iterator c12 = R12.begin(); c12 != R12.end(); ++c12) {
+            if (result.size()) {
+                result += ", ";
+            } else {
+                result = "[";
+            }
+            km = std::to_string(c11[1].as<double>() * miles_to_km);
+            result += "{\"statute miles\": \"" + c11[1].as<std::string>() + "\", \"kilometers\": \"" + km + "\", " + c12[0].as<std::string>().erase(0,1);
+        }
+    }
+    result += "]";
+
+    // Put the connections back to the pool.
+    {
+        auto lock = lock_db_mutex();
+        dbpool.push(D11);
+        dbpool.push(D12);
+    }
+
+    return result;
+}
+
 Database::~Database() {
 }
 

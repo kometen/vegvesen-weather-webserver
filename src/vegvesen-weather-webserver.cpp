@@ -114,7 +114,7 @@ int main() {
 
     // Default response.
     server.default_resource["GET"] = [](HttpServer::Response& response, std::shared_ptr<HttpServer::Request> request) {
-        const std::string msg = "<!doctype html><html lang='en'><head><meta charset='utf-8'><title>Weather statistics</title></head><body>Available paths<br/><a href='/info'>/info</a><br/><a href='/site/123'>/site/id</a>, id is numeric<br/><a href='/graticule/61.737785/6.4092124'>/graticule/latitude/longitude</a>, in decimal degrees<br/><a href='/graticule/61.737785/6.4092124/9'>/graticule/latitude/longitude/sites</a>, up to nine sites<br/><a href='/erento/61.737785/6.4092124/30'>/graticule/latitude/longitude/radius</a>, radius in kilometer</body></html>";
+        const std::string msg = "<!doctype html><html lang='en'><head><meta charset='utf-8'><title>Weather statistics</title></head><body>Available paths<br/><a href='/info'>/info</a><br/><a href='/site/123'>/site/id</a>, id is numeric<br/><a href='/graticule/61.737785/6.4092124'>/graticule/latitude/longitude</a>, in decimal degrees<br/><a href='/graticule/61.737785/6.4092124/9'>/graticule/latitude/longitude/sites</a>, up to nine sites<br/><a href='/erento/61.737785/6.4092124/30'>/erento/latitude/longitude/radius</a>, radius in kilometer</body></html>";
         const int msgs = msg.size();
         response << "HTTP/1.1 404 Not Found\r\nContent-Length: " << msgs << "\r\n\r\n" << msg;
     };
